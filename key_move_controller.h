@@ -27,7 +27,6 @@ namespace oeg
 
         void moveInPlaneXZ(GLFWwindow* window, float dt, OegGameObject& gameObject) const;
 
-
         KeyMappings keys{};
         float moveSpeed{ 3.f };
         float lookSpeed{ 1.5f };

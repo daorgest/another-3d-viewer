@@ -81,6 +81,21 @@
     <ClCompile Include="oeg_buffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="libs\imgui\imgui.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\imgui\imgui_demo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\imgui\imgui_draw.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\imgui\imgui_tables.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\imgui\imgui_widgets.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="main_app.h">
@@ -143,6 +158,9 @@
     <ClInclude Include="oeg_buffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="libs\imgui\imgui.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\simple_shader.vert" />
@@ -152,5 +170,8 @@
     <None Include="shaders\simple_shader.frag" />
     <None Include="shaders\simple_shader.frag.spv" />
     <None Include="shaders\simple_shader.vert.spv" />
+    <None Include=".gitattributes" />
+    <None Include=".gitignore" />
+    <None Include=".gitmodules" />
   </ItemGroup>
 </Project>

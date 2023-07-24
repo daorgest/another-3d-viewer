@@ -8,8 +8,6 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/constants.hpp"
 
-
-
 // std
 #include <chrono>
 #include <stdexcept>
