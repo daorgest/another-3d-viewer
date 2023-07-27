@@ -28,6 +28,8 @@ namespace oeg
 
 	void OegEngine::run() 
 	{
+        std::vector<std::unique_ptr<OegBuffer>> uboBuffers(OegSwapChain::MAX_FRAMES_IN_FLIGHT);
+
         OegBuffer globalUboBuffer{
 		oegDevice,
 		sizeof(GlobalUbo),
@@ -62,10 +64,17 @@ namespace oeg
             camera.setViewYXZ(viewerObject.transform.translation, viewerObject.transform.rotation);
 
             float aspect = oegRenderer.getAspectRatio();
-            camera.setPerspectiveProjection(glm::radians(50.f), aspect, 0.1f, 10.0f);
+            camera.setPerspectiveProjection(glm::radians(110.f), aspect, 0.1f, 10.0f);
 			if (auto commandBuffer = oegRenderer.beginFrame())
 			{
                 int frameIndex = oegRenderer.getFrameIndex();
+                FrameInfo frameInfo
+                {
+                    frameIndex,
+                    frameTime,
+                    commandBuffer,
+                    camera
+                };
 
                 //  update
                 GlobalUbo ubo{};
@@ -75,7 +84,7 @@ namespace oeg
 
                 //  render
 				oegRenderer.beginSwapChainRenderPass(commandBuffer);
-				simpleRenderSystem.renderGameObjects(commandBuffer, gameObjects,camera);
+				simpleRenderSystem.renderGameObjects(frameInfo, gameObjects);
 				oegRenderer.endSwapChainRenderPass(commandBuffer);
 				oegRenderer.endFrame();
 			}

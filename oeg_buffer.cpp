@@ -147,12 +147,13 @@ VkResult OegBuffer::invalidate(VkDeviceSize size, VkDeviceSize offset) {
  *
  * @return VkDescriptorBufferInfo of specified offset and range
  */
-VkDescriptorBufferInfo OegBuffer::descriptorInfo(VkDeviceSize size, VkDeviceSize offset) {
-  return VkDescriptorBufferInfo{
-      buffer,
-      offset,
-      size,
-  };
+VkDescriptorBufferInfo OegBuffer::descriptorInfo(VkDeviceSize size, VkDeviceSize offset) 
+{
+    return VkDescriptorBufferInfo{
+        buffer,
+        offset,
+        size,
+    };
 }
  
 /**
@@ -162,8 +163,9 @@ VkDescriptorBufferInfo OegBuffer::descriptorInfo(VkDeviceSize size, VkDeviceSize
  * @param index Used in offset calculation
  *
  */
-void OegBuffer::writeToIndex(void *data, int index) {
-  writeToBuffer(data, instanceSize, index * alignmentSize);
+void OegBuffer::writeToIndex(void *data, int index) 
+{
+    writeToBuffer(data, instanceSize, index * alignmentSize);
 }
  
 /**
@@ -181,8 +183,9 @@ VkResult OegBuffer::flushIndex(int index) { return flush(alignmentSize, index * 
  *
  * @return VkDescriptorBufferInfo for instance at index
  */
-VkDescriptorBufferInfo OegBuffer::descriptorInfoForIndex(int index) {
-  return descriptorInfo(alignmentSize, index * alignmentSize);
+VkDescriptorBufferInfo OegBuffer::descriptorInfoForIndex(int index) 
+{
+    return descriptorInfo(alignmentSize, index * alignmentSize);
 }
  
 /**
@@ -194,8 +197,9 @@ VkDescriptorBufferInfo OegBuffer::descriptorInfoForIndex(int index) {
  *
  * @return VkResult of the invalidate call
  */
-VkResult OegBuffer::invalidateIndex(int index) {
-  return invalidate(alignmentSize, index * alignmentSize);
+VkResult OegBuffer::invalidateIndex(int index) 
+{
+    return invalidate(alignmentSize, index * alignmentSize);
 }
  
 }  // namespace Oeg

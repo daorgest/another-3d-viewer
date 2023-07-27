@@ -113,7 +113,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>E:\Coding Projects\C++\libs\fmt-10.0.0\include;libs\tinyobjloader;E:\Coding Projects\C++\libs\glfw-3.3.8\include;E:\Coding Projects\C++\libs\glm-master;$(VULKAN_SDK)\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\Coding Projects\C++\libs\fmt-10.0.0\include;libs\tinyobjloader;E:\Coding Projects\C++\libs\glfw-3.3.8\include;E:\Coding Projects\C++\libs\glm-master;libs\VulkanMemoryAllocator\include;$(VULKAN_SDK)\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <EnableModules>true</EnableModules>
     </ClCompile>
@@ -137,7 +137,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>E:\Coding Projects\C++\libs\fmt-10.0.0\include;libs\tinyobjloader;E:\Coding Projects\C++\libs\glfw-3.3.8\include;E:\Coding Projects\C++\libs\glm-master;$(VULKAN_SDK)\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\Coding Projects\C++\libs\fmt-10.0.0\include;libs\tinyobjloader;E:\Coding Projects\C++\libs\glfw-3.3.8\include;E:\Coding Projects\C++\libs\glm-master;libs\VulkanMemoryAllocator\include;$(VULKAN_SDK)\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <EnableModules>true</EnableModules>
     </ClCompile>
@@ -177,6 +177,7 @@
     <ClInclude Include="oeg_buffer.h" />
     <ClInclude Include="oeg_camera.h" />
     <ClInclude Include="oeg_device.h" />
+    <ClInclude Include="oeg_frame_info.h" />
     <ClInclude Include="oeg_game_object.h" />
     <ClInclude Include="oeg_model.h" />
     <ClInclude Include="oeg_pipeline.h" />

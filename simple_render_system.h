@@ -3,8 +3,10 @@
 // my shit
 #include "oeg_camera.h"
 #include "oeg_device.h"
-#include "oeg_pipeline.h"
 #include "oeg_game_object.h"
+#include "oeg_pipeline.h"
+#include "oeg_frame_info.h"
+
 
 // std
 #include <memory>
@@ -21,7 +23,7 @@ namespace oeg
 
 		SimpleRenderSystem(const SimpleRenderSystem&) = delete;
 		SimpleRenderSystem& operator=(const SimpleRenderSystem&) = delete;
-		void renderGameObjects(VkCommandBuffer commandBuffer, std::vector<OegGameObject> &gameObjects, const OegCamera& camera);
+		void renderGameObjects(FrameInfo &frameInfo, std::vector<OegGameObject> &gameObjects);
 
 	private:
 		void createPipelineLayout();
