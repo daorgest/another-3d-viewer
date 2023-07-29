@@ -6,11 +6,9 @@
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include "glm/glm.hpp"
-#include "glm/gtc/constants.hpp"
 
 // std
 #include <chrono>
-#include <stdexcept>
 #include <array>
 
 namespace oeg
@@ -64,7 +62,7 @@ namespace oeg
             camera.setViewYXZ(viewerObject.transform.translation, viewerObject.transform.rotation);
 
             float aspect = oegRenderer.getAspectRatio();
-            camera.setPerspectiveProjection(glm::radians(110.f), aspect, 0.1f, 10.0f);
+            camera.setPerspectiveProjection(glm::radians(70.f), aspect, 0.1f, 10.0f);
 			if (auto commandBuffer = oegRenderer.beginFrame())
 			{
                 int frameIndex = oegRenderer.getFrameIndex();

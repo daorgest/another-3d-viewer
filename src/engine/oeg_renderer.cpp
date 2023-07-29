@@ -3,10 +3,11 @@
 // std
 #include <stdexcept>
 #include <array>
+#include <cassert>
 
 namespace oeg
 {
-	OegRenderer::OegRenderer(OegWindow& window, OegDevice& device) 
+	OegRenderer::OegRenderer(OegWindow& window, OegDevice& device)
 		: oegWindow{window}, oegDevice{device}
 	{
 		recreateSwapChain();
@@ -45,7 +46,7 @@ namespace oeg
 		// coming back to this
 	}
 
-	void OegRenderer::createCommandBuffer() 
+	void OegRenderer::createCommandBuffer()
 	{
 		commandBuffers.resize(OegSwapChain::MAX_FRAMES_IN_FLIGHT);
 

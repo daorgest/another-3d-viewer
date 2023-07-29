@@ -25,13 +25,12 @@ namespace oeg
 
 		VkRenderPass getSwapChainRenderPass() const { return oegSwapChain->getRenderPass(); }
 		float getAspectRatio() const { return oegSwapChain->extentAspectRatio(); }
-
 		bool isFrameInProgress() const { return isFrameStarted; }
 
-		VkCommandBuffer getCurrentCommandBuffer() const 
-		{ 
+		VkCommandBuffer getCurrentCommandBuffer() const
+		{
 			assert(isFrameStarted && "Cannot get command buffer when frame not in progress");
-			return commandBuffers[currentFrameIndex]; 
+			return commandBuffers[currentFrameIndex];
 		}
 
 		int getFrameIndex() const
@@ -56,7 +55,7 @@ namespace oeg
 		std::vector<VkCommandBuffer> commandBuffers;
 
 		uint32_t currentImageIndex;
-		int currentFrameIndex;
-		bool isFrameStarted{ false };
+		int currentFrameIndex{0}; // ........ just had to initialize it....
+		bool isFrameStarted{false};
 	};
 }

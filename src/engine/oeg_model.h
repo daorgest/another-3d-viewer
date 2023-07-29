@@ -4,7 +4,6 @@
 #include "oeg_buffer.h"
 #include "oeg_device.h"
 
-
 // glm
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -28,6 +27,8 @@ namespace oeg {
 
 			static std::vector<VkVertexInputBindingDescription> getBindingDescriptions();
 			static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions();
+
+			bool operator==(const Vertex &other) const;
 		};
 
 		struct Builder
@@ -56,11 +57,11 @@ namespace oeg {
 		OegDevice& oegDevice;
 
 		std::unique_ptr<OegBuffer> vertexBuffer;
-		uint32_t vertexCount;
+		uint32_t vertexCount{};
 
 		bool hasIndexBuffer = false;
 		std::unique_ptr<OegBuffer> indexBuffer;
-		uint32_t indexCount;
+		uint32_t indexCount{};
 
 	};
 }

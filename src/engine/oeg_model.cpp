@@ -1,12 +1,29 @@
 #include "oeg_model.h"
-
+#include "oeg_utils.h"
 
 // libs
-#define TINYOBJLOADER_IMPLEMENTATION
 #define FMT_HEADER_ONLY
-#include <cassert>
+#include <fmt/core.h>
+#define TINYOBJLOADER_IMPLEMENTATION
 #include <tiny_obj_loader.h>
-#include "fmt/core.h"
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/hash.hpp>
+
+#include <cassert>
+#include <unordered_map>
+
+namespace std{
+	template <>
+	struct hash<oeg::OegModel::Vertex>
+	{
+		size_t operator()(oeg::OegModel::Vertex const &vertex) const
+		{
+			size_t seed = 0;
+			oeg::hashCombine(seed, vertex.position, vertex.color, vertex.normal, vertex.uv);
+			return seed;
+		}
+	};
+}
 
 namespace oeg {
 	OegModel::OegModel(OegDevice& device, const OegModel::Builder& builder)
@@ -29,7 +46,7 @@ namespace oeg {
 	void OegModel::createVertexBuffer(const std::vector<Vertex>& vertices)
 	{
 		vertexCount = static_cast<uint32_t>(vertices.size());
-		assert(vertexCount >= 3 && "Vertex cound must be atleast 3...");
+		assert(vertexCount >= 3 && "Vertex count must be at least 3...");
 		VkDeviceSize bufferSize = sizeof(vertices[0]) * vertexCount;
 		uint32_t vertexSize = sizeof(vertices[0]); // PLEASE PUT AN INDEX ON THIS OR YOUR COMPUTER WILL HANG
 
@@ -101,7 +118,7 @@ namespace oeg {
 		{
 			vkCmdDrawIndexed(commandBuffer, indexCount, 1, 0, 0, 0);
 		}
-		else 
+		else
 		{
 			vkCmdDraw(commandBuffer, vertexCount, 1, 0, 0);
 		}
@@ -143,6 +160,11 @@ namespace oeg {
 		return attributeDescriptions;
 	}
 
+	bool OegModel::Vertex::operator==(const OegModel::Vertex &other) const {
+		return position == other.position && color == other.color && normal == other.normal &&
+			   uv == other.uv;
+	}
+
 	/**
 		* Loads a 3D model from the specified file.
 		*
@@ -165,9 +187,10 @@ namespace oeg {
 			throw std::runtime_error(warn + err);
 		}
 
+        fmt::print("IT LOADED\n");
 		vertices.clear();
 		indices.clear();
-
+		std::unordered_map<Vertex, uint32_t> uniqueVertices{};
 		for (const auto &shape : shapes)
 		{
 			for(const auto &index : shape.mesh.indices)
@@ -206,7 +229,12 @@ namespace oeg {
 					};
 				}
 
-				vertices.push_back(vertex);
+				if (uniqueVertices.count(vertex) == 0)
+				{
+					uniqueVertices[vertex] = static_cast<uint32_t>(vertices.size());
+					vertices.push_back(vertex);
+				}
+				indices.push_back(uniqueVertices[vertex]);
 			}
 		}
 	}

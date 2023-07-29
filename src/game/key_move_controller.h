@@ -1,7 +1,7 @@
 #pragma once
 
-#include "oeg_game_object.h"
-#include "oeg_window.h"
+#include "../engine/oeg_game_object.h"
+#include "../engine/oeg_window.h"
 
 
 // std

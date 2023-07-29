@@ -1,11 +1,11 @@
 #pragma once
 
 // my shit
-#include "oeg_camera.h"
-#include "oeg_device.h"
-#include "oeg_game_object.h"
-#include "oeg_pipeline.h"
-#include "oeg_frame_info.h"
+#include "../engine/oeg_camera.h"
+#include "../engine/oeg_device.h"
+#include "../engine/oeg_game_object.h"
+#include "../engine/oeg_pipeline.h"
+#include "../engine/oeg_frame_info.h"
 
 
 // std

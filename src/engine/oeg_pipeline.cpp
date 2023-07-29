@@ -32,7 +32,7 @@ namespace oeg
 		{
 			throw std::runtime_error("Failed to open file: " + filepath);
 		}
-		size_t fileSize = static_cast<size_t>(file.tellg());
+		auto fileSize = static_cast<size_t>(file.tellg());
 		std::vector<char> buffer(fileSize);
 
 		file.seekg(0);
@@ -116,7 +116,7 @@ namespace oeg
 			nullptr,
 			&graphicsPipeline) != VK_SUCCESS)
 		{
-			throw std::runtime_error("failed to greate grphics pipeline WOW AMAZING");
+			throw std::runtime_error("failed to create graphics pipeline WOW AMAZING");
 		}
 
 	}

@@ -51,7 +51,7 @@ namespace oeg {
 				const PipelineConfigInfo& configInfo);
 
 			// takes in shader code in a form of a vector. pointer to a shader module,
-			// used to create the module and initilize the variable
+			// used to create the module and initialize the variable
 			void createShaderModule(const std::vector<char>& code, VkShaderModule* VkShaderModule);
 			// an implicit will outlive the class that depends on it (aggregation)
 			OegDevice& oegDevice;

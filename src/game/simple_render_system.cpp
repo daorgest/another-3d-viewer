@@ -1,21 +1,19 @@
 #include "simple_render_system.h"
 
 // 3rd party
-#define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include "glm/glm.hpp"
 #include "glm/gtc/constants.hpp"
 
 // std
 #include <stdexcept>
-#include <array>
 
 namespace oeg
 {
 	struct SimplePushConstantData
 	{
 		glm::mat4 transform{1.f};
-		glm::mat3 normalMatrix{1.f};
+		glm::mat4 normalMatrix{1.f};
 	};
 
 	SimpleRenderSystem::SimpleRenderSystem(OegDevice& device, VkRenderPass renderPass) 
@@ -76,11 +74,11 @@ namespace oeg
 
 		for (auto& obj : gameObjects)
 		{
-
 			SimplePushConstantData push{};
 			auto modelMatrix = obj.transform.mat4();
 			push.transform = projectionView * modelMatrix;
 			push.normalMatrix = obj.transform.normalMatrix();
+
 			vkCmdPushConstants(
 				frameInfo.commandBuffer,
 				pipelineLayout,
