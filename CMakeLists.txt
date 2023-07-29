@@ -49,49 +49,44 @@ if(WIN32)
             vulkan-1
             glfw3
     )
-elseif(APPLE)
-    find_library(COCOA_FRAMEWORK Cocoa REQUIRED)
-    find_library(IOKIT_FRAMEWORK IOKit REQUIRED)
-    find_library(CORE_FOUNDATION_FRAMEWORK CoreFoundation REQUIRED)
-    find_library(CORE_VIDEO_FRAMEWORK CoreVideo REQUIRED)
-
-    target_link_libraries(VulkanEngine PRIVATE
-            "-framework Vulkan"
-            "-framework Metal"
-            glfw3
-            ${COCOA_FRAMEWORK}
-            ${IOKIT_FRAMEWORK}
-            ${CORE_FOUNDATION_FRAMEWORK}
-            ${CORE_VIDEO_FRAMEWORK}
+elseif (UNIX)
+    message(STATUS "CREATING BUILD FOR UNIX")
+    target_include_directories(${PROJECT_NAME} PUBLIC
+            ${PROJECT_SOURCE_DIR}/src
+            ${TINYOBJ_PATH}
     )
-else() # Linux
-    find_package(Vulkan REQUIRED)
-    find_package(glfw3 REQUIRED)
-
-    target_link_libraries(VulkanEngine PRIVATE
-            ${Vulkan_LIBRARIES}
-            glfw
-    )
-endif()
-
+    target_link_libraries(${PROJECT_NAME} glfw ${Vulkan_LIBRARIES})
+endif ()
 # Set the output directory for the executable
 set(EXECUTABLE_OUTPUT_PATH "${CMAKE_SOURCE_DIR}/bin")
 
-# Compile shaders
-# TODO: Will make it so I dont have to specify exact directories
-add_custom_command(TARGET VulkanEngine PRE_BUILD
-        COMMAND "C:/VulkanSDK/1.3.250.0/Bin/glslc.exe" "${CMAKE_CURRENT_SOURCE_DIR}/src/game/shaders/simple_shader.vert" -o "${CMAKE_CURRENT_SOURCE_DIR}/src/game/shaders/simple_shader.vert.spv"
-        COMMAND "C:/VulkanSDK/1.3.250.0/Bin/glslc.exe" "${CMAKE_CURRENT_SOURCE_DIR}/src/game/shaders/simple_shader.frag" -o "${CMAKE_CURRENT_SOURCE_DIR}/src/game/shaders/simple_shader.frag.spv"
-        COMMENT "Building Shaders..."
+find_program(GLSL_VALIDATOR glslangValidator HINTS
+        ${Vulkan_GLSLANG_VALIDATOR_EXECUTABLE}
+        /usr/bin
+        /usr/local/bin
+        ${VULKAN_SDK_PATH}/Bin
+        ${VULKAN_SDK_PATH}/Bin32
+        $ENV{VULKAN_SDK}/Bin/
+        $ENV{VULKAN_SDK}/Bin32/
 )
 
-# Copy the models and shaders directories to bin
-add_custom_command(TARGET VulkanEngine POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/game/models"
-        "${CMAKE_SOURCE_DIR}/bin/models"
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/game/shaders"
-        "${CMAKE_SOURCE_DIR}/bin/shaders"
-        COMMENT "Copying models and shaders directories..."
+# get all .vert and .frag files in shaders directory
+file(GLOB_RECURSE GLSL_SOURCE_FILES
+        "${PROJECT_SOURCE_DIR}/src/game/shaders/*.frag"
+        "${PROJECT_SOURCE_DIR}/src/game/shaders/*.vert"
+)
+
+foreach(GLSL ${GLSL_SOURCE_FILES})
+    get_filename_component(FILE_NAME ${GLSL} NAME)
+    set(SPIRV "${PROJECT_SOURCE_DIR}/src/game/shaders/${FILE_NAME}.spv")
+    add_custom_command(
+            OUTPUT ${SPIRV}
+            COMMAND ${GLSL_VALIDATOR} -V ${GLSL} -o ${SPIRV}
+            DEPENDS ${GLSL})
+    list(APPEND SPIRV_BINARY_FILES ${SPIRV})
+endforeach(GLSL)
+
+add_custom_target(
+        Shaders
+        DEPENDS ${SPIRV_BINARY_FILES}
 )
