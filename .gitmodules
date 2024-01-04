@@ -8,6 +8,7 @@
 	path = libs/glm
 	url = https://github.com/g-truc/glm.git
 [submodule "libs/fmt"]
-    path = libs/fmt
-    url = https://github.com/fmtlib/fmt.git
+	path = libs/fmt
+	url = https://github.com/fmtlib/fmt.git
+	branch = 10.2.0
 
