@@ -4,7 +4,9 @@
 #include <GLFW/glfw3.h>
 
 #include <string>
-namespace oeg {
+
+namespace oeg
+{
 	class OegWindow
 	{
 	public:
@@ -12,15 +14,15 @@ namespace oeg {
 		~OegWindow();
 
 		OegWindow(const OegWindow&) = delete;
-		OegWindow &operator=(const OegWindow&) = delete;
+		OegWindow& operator=(const OegWindow&) = delete;
 
 		bool shouldClose() { return glfwWindowShouldClose(window); }
-		VkExtent2D getExtent() { return { static_cast<uint32_t>(width), static_cast<uint32_t>(height) }; }
+		VkExtent2D getExtent() { return {static_cast<uint32_t>(width), static_cast<uint32_t>(height)}; }
 		bool wasWindowResized() { return framebufferResized; }
 		void resetWindowResiedFlag() { framebufferResized = false; }
 		GLFWwindow* getGLFWWindow() const { return window; }
 
-		void createWindowSurface(VkInstance instance, VkSurfaceKHR *surface);
+		void createWindowSurface(VkInstance instance, VkSurfaceKHR* surface);
 
 	private:
 		static void framebufferResizedCallback(GLFWwindow* window, int width, int height);

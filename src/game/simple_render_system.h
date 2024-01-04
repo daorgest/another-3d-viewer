@@ -17,18 +17,17 @@ namespace oeg
 	class SimpleRenderSystem
 	{
 	public:
-
 		SimpleRenderSystem(OegDevice& device, VkRenderPass renderPass);
 		~SimpleRenderSystem();
 
 		SimpleRenderSystem(const SimpleRenderSystem&) = delete;
 		SimpleRenderSystem& operator=(const SimpleRenderSystem&) = delete;
-		void renderGameObjects(FrameInfo &frameInfo, std::vector<OegGameObject> &gameObjects);
+		void renderGameObjects(FrameInfo& frameInfo, std::vector<OegGameObject>& gameObjects);
 
 	private:
 		void createPipelineLayout();
 		void createPipeline(VkRenderPass renderPass);
-		
+
 		OegDevice& oegDevice;
 
 		std::unique_ptr<OegPipeline> oegPipeline;

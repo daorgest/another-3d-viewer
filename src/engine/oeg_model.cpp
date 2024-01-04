@@ -12,11 +12,12 @@
 #include <cassert>
 #include <unordered_map>
 
-namespace std{
+namespace std
+{
 	template <>
 	struct hash<oeg::OegModel::Vertex>
 	{
-		size_t operator()(oeg::OegModel::Vertex const &vertex) const
+		size_t operator()(const oeg::OegModel::Vertex& vertex) const
 		{
 			size_t seed = 0;
 			oeg::hashCombine(seed, vertex.position, vertex.color, vertex.normal, vertex.uv);
@@ -25,12 +26,13 @@ namespace std{
 	};
 }
 
-namespace oeg {
-	OegModel::OegModel(OegDevice& device, const OegModel::Builder& builder)
-		:oegDevice(device)
+namespace oeg
+{
+	OegModel::OegModel(OegDevice& device, const Builder& builder)
+		: oegDevice(device)
 	{
-			createVertexBuffer(builder.vertices);
-			createIndexBuffer(builder.indices);
+		createVertexBuffer(builder.vertices);
+		createIndexBuffer(builder.indices);
 	}
 
 	OegModel::~OegModel() = default;
@@ -60,7 +62,7 @@ namespace oeg {
 		};
 
 		stagingBuffer.map();
-		stagingBuffer.writeToBuffer((void *)vertices.data());
+		stagingBuffer.writeToBuffer((void*)vertices.data());
 
 		vertexBuffer = std::make_unique<OegBuffer>(
 			oegDevice,
@@ -68,18 +70,18 @@ namespace oeg {
 			vertexCount,
 			VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, // used to hold vertex input data
 			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT // host = CPU
-			);
+		);
 
 		oegDevice.copyBuffer(stagingBuffer.getBuffer(), vertexBuffer->getBuffer(), bufferSize);
 		// it will destroy anyway
 	}
 
-	void OegModel::createIndexBuffer(const std::vector<uint32_t> &indices)
+	void OegModel::createIndexBuffer(const std::vector<uint32_t>& indices)
 	{
 		indexCount = static_cast<uint32_t>(indices.size());
 		hasIndexBuffer = indexCount > 0;
 
-		if(!hasIndexBuffer)
+		if (!hasIndexBuffer)
 		{
 			return;
 		}
@@ -109,10 +111,9 @@ namespace oeg {
 
 
 		oegDevice.copyBuffer(stagingBuffer.getBuffer(), indexBuffer->getBuffer(), bufferSize);
-
 	}
 
-	void OegModel::draw(VkCommandBuffer commandBuffer) 
+	void OegModel::draw(VkCommandBuffer commandBuffer)
 	{
 		if (hasIndexBuffer)
 		{
@@ -130,7 +131,7 @@ namespace oeg {
 		VkDeviceSize offsets[] = {0};
 		vkCmdBindVertexBuffers(commandBuffer, 0, 1, buffers, offsets);
 
-		if(hasIndexBuffer)
+		if (hasIndexBuffer)
 		{
 			vkCmdBindIndexBuffer(commandBuffer, indexBuffer->getBuffer(), 0, VK_INDEX_TYPE_UINT32);
 		}
@@ -149,20 +150,25 @@ namespace oeg {
 	{
 		std::vector<VkVertexInputAttributeDescription> attributeDescriptions{};
 
-		attributeDescriptions .push_back({ 0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, position)
-			});
-		attributeDescriptions.push_back({ 1, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, color)
-			});
-		attributeDescriptions.push_back({ 2, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, normal)
-			});
-		attributeDescriptions.push_back({ 3, 0, VK_FORMAT_R32G32_SFLOAT, offsetof(Vertex, uv)
-			});
+		attributeDescriptions.push_back({
+			0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, position)
+		});
+		attributeDescriptions.push_back({
+			1, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, color)
+		});
+		attributeDescriptions.push_back({
+			2, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, normal)
+		});
+		attributeDescriptions.push_back({
+			3, 0, VK_FORMAT_R32G32_SFLOAT, offsetof(Vertex, uv)
+		});
 		return attributeDescriptions;
 	}
 
-	bool OegModel::Vertex::operator==(const OegModel::Vertex &other) const {
+	bool OegModel::Vertex::operator==(const Vertex& other) const
+	{
 		return position == other.position && color == other.color && normal == other.normal &&
-			   uv == other.uv;
+			uv == other.uv;
 	}
 
 	/**
@@ -181,19 +187,19 @@ namespace oeg {
 		std::string warn, err;
 
 		// Attempt to load the model using the TinyObjLoader library
-		if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, filepath.c_str()))
+		if (!LoadObj(&attrib, &shapes, &materials, &warn, &err, filepath.c_str()))
 		{
 			// Throw a runtime error if there was an error loading the model
 			throw std::runtime_error(warn + err);
 		}
 
-        fmt::print("IT LOADED\n");
+		fmt::print("IT LOADED\n");
 		vertices.clear();
 		indices.clear();
 		std::unordered_map<Vertex, uint32_t> uniqueVertices{};
-		for (const auto &shape : shapes)
+		for (const auto& shape : shapes)
 		{
-			for(const auto &index : shape.mesh.indices)
+			for (const auto& index : shape.mesh.indices)
 			{
 				Vertex vertex{};
 
@@ -229,7 +235,7 @@ namespace oeg {
 					};
 				}
 
-				if (uniqueVertices.count(vertex) == 0)
+				if (!uniqueVertices.contains(vertex))
 				{
 					uniqueVertices[vertex] = static_cast<uint32_t>(vertices.size());
 					vertices.push_back(vertex);
@@ -238,6 +244,4 @@ namespace oeg {
 			}
 		}
 	}
-
-
 }

@@ -8,7 +8,7 @@ int main()
 {
 	oeg::OegEngine app{};
 
-	try 
+	try
 	{
 		app.run();
 	}

@@ -5,19 +5,19 @@
 namespace oeg
 {
 	// initilize
-	OegWindow::OegWindow(int w, int h, std::string winName) : width{ w }, height{ h }, windowName{ winName } 
+	OegWindow::OegWindow(int w, int h, std::string winName) : width{w}, height{h}, windowName{winName}
 	{
 		initWindow();
 	}
 
 	// destructor
-	OegWindow::~OegWindow() 
+	OegWindow::~OegWindow()
 	{
 		glfwDestroyWindow(window);
 		glfwTerminate();
 	}
 
-	void OegWindow::initWindow() 
+	void OegWindow::initWindow()
 	{
 		glfwInit();
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
@@ -28,9 +28,9 @@ namespace oeg
 		glfwSetFramebufferSizeCallback(window, framebufferResizedCallback);
 	}
 
-	void OegWindow::createWindowSurface(VkInstance instance, VkSurfaceKHR* surface) 
+	void OegWindow::createWindowSurface(VkInstance instance, VkSurfaceKHR* surface)
 	{
-		if (glfwCreateWindowSurface(instance, window, nullptr, surface) != VK_SUCCESS) 
+		if (glfwCreateWindowSurface(instance, window, nullptr, surface) != VK_SUCCESS)
 		{
 			throw std::runtime_error("failed to create window surface");
 		}

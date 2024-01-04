@@ -13,7 +13,8 @@
 #include <memory>
 #include <vector>
 
-namespace oeg {
+namespace oeg
+{
 	// vertex data
 	class OegModel
 	{
@@ -28,7 +29,7 @@ namespace oeg {
 			static std::vector<VkVertexInputBindingDescription> getBindingDescriptions();
 			static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions();
 
-			bool operator==(const Vertex &other) const;
+			bool operator==(const Vertex& other) const;
 		};
 
 		struct Builder
@@ -39,7 +40,7 @@ namespace oeg {
 			void loadModel(const std::string& filepath);
 		};
 
-		OegModel(OegDevice &device, const OegModel::Builder &builder);
+		OegModel(OegDevice& device, const Builder& builder);
 		~OegModel();
 
 		OegModel(const OegModel&) = delete;
@@ -50,9 +51,10 @@ namespace oeg {
 
 		void bind(VkCommandBuffer commandBuffer);
 		void draw(VkCommandBuffer commandBuffer);
+
 	private:
 		void createVertexBuffer(const std::vector<Vertex>& vertices);
-		void createIndexBuffer(const std::vector<uint32_t> &indices);
+		void createIndexBuffer(const std::vector<uint32_t>& indices);
 
 		OegDevice& oegDevice;
 
@@ -62,6 +64,5 @@ namespace oeg {
 		bool hasIndexBuffer = false;
 		std::unique_ptr<OegBuffer> indexBuffer;
 		uint32_t indexCount{};
-
 	};
 }

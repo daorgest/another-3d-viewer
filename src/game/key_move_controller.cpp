@@ -3,7 +3,7 @@
 namespace oeg
 {
 	void KeyboardMovementController::moveInPlaneXZ(GLFWwindow* window,
-		float dt, OegGameObject& gameObject) const
+	                                               float dt, OegGameObject& gameObject) const
 	{
 		glm::vec3 rotate{0}; // if no keys are pressed, no rotation
 
@@ -12,9 +12,9 @@ namespace oeg
 		if (glfwGetKey(window, keys.lookUp) == GLFW_PRESS) rotate.x += 1.f;
 		if (glfwGetKey(window, keys.lookDown) == GLFW_PRESS) rotate.x -= 1.f;
 
-		if (glm::dot(rotate, rotate) > std::numeric_limits<float>::epsilon())
+		if (dot(rotate, rotate) > std::numeric_limits<float>::epsilon())
 		{
-			gameObject.transform.rotation += lookSpeed * dt * glm::normalize(rotate);
+			gameObject.transform.rotation += lookSpeed * dt * normalize(rotate);
 		}
 
 		gameObject.transform.rotation.x = glm::clamp(gameObject.transform.rotation.x, -1.5f, 1.5f);
@@ -25,7 +25,7 @@ namespace oeg
 		const glm::vec3 rightDir{forwardDir.z, 0.f, -forwardDir.x};
 		const glm::vec3 upDir{0.f, -1.f, 0.f};
 
-		glm::vec3 movement{ 0.f };
+		glm::vec3 movement{0.f};
 
 		if (glfwGetKey(window, keys.moveForward) == GLFW_PRESS)
 			movement += forwardDir;
@@ -40,10 +40,9 @@ namespace oeg
 		if (glfwGetKey(window, keys.moveDown) == GLFW_PRESS)
 			movement -= upDir;
 
-		if (glm::dot(movement, movement) > std::numeric_limits<float>::epsilon())
+		if (dot(movement, movement) > std::numeric_limits<float>::epsilon())
 		{
-			gameObject.transform.translation += moveSpeed * dt * glm::normalize(movement);
+			gameObject.transform.translation += moveSpeed * dt * normalize(movement);
 		}
-
 	}
 }

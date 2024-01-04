@@ -15,8 +15,6 @@ namespace oeg
 	class OegRenderer
 	{
 	public:
-
-
 		OegRenderer(OegWindow& window, OegDevice& device);
 		~OegRenderer();
 
@@ -51,7 +49,8 @@ namespace oeg
 
 		OegWindow& oegWindow;
 		OegDevice& oegDevice;
-		std::unique_ptr<OegSwapChain> oegSwapChain; // updating the swapchain with a new width and height with unique_ptr
+		std::unique_ptr<OegSwapChain> oegSwapChain;
+		// updating the swapchain with a new width and height with unique_ptr
 		std::vector<VkCommandBuffer> commandBuffers;
 
 		uint32_t currentImageIndex;

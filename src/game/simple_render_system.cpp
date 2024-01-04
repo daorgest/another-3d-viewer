@@ -16,7 +16,7 @@ namespace oeg
 		glm::mat4 normalMatrix{1.f};
 	};
 
-	SimpleRenderSystem::SimpleRenderSystem(OegDevice& device, VkRenderPass renderPass) 
+	SimpleRenderSystem::SimpleRenderSystem(OegDevice& device, VkRenderPass renderPass)
 		: oegDevice{device}
 	{
 		createPipelineLayout();
@@ -30,8 +30,8 @@ namespace oeg
 
 	void SimpleRenderSystem::createPipelineLayout()
 	{
-
-		VkPushConstantRange pushConstantRange{ // in order: stageFlags, offset, size
+		VkPushConstantRange pushConstantRange{
+			// in order: stageFlags, offset, size
 			VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
 			0,
 			sizeof(SimplePushConstantData)
@@ -65,7 +65,7 @@ namespace oeg
 
 
 	void SimpleRenderSystem::renderGameObjects(
-		FrameInfo &frameInfo,
+		FrameInfo& frameInfo,
 		std::vector<OegGameObject>& gameObjects)
 	{
 		oegPipeline->bind(frameInfo.commandBuffer);
@@ -85,7 +85,7 @@ namespace oeg
 				VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
 				0,
 				sizeof(SimplePushConstantData),
-				&push); 
+				&push);
 			obj.model->bind(frameInfo.commandBuffer);
 			obj.model->draw(frameInfo.commandBuffer);
 		}

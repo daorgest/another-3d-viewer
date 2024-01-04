@@ -31,9 +31,9 @@ namespace oeg
 	private:
 		void loadGameObjects();
 
-		OegWindow oegWindow{ WIDTH, HEIGHT, "Vulkan App" };
-		OegDevice oegDevice{ oegWindow };
-		OegRenderer oegRenderer{ oegWindow, oegDevice };
+		OegWindow oegWindow{WIDTH, HEIGHT, "Vulkan App"};
+		OegDevice oegDevice{oegWindow};
+		OegRenderer oegRenderer{oegWindow, oegDevice};
 
 		std::vector<OegGameObject> gameObjects;
 	};

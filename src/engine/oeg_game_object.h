@@ -8,14 +8,13 @@
 //std
 #include <memory>
 
-namespace oeg 
+namespace oeg
 {
-
-	struct TransformComponent 
+	struct TransformComponent
 	{
-		glm::vec3 translation {}; //position offset
-		glm::vec3 scale {1.f, 1.f, 1.f};
-		glm::vec3 rotation; /// spinnnn
+		glm::vec3 translation{}; //position offset
+		glm::vec3 scale{1.f, 1.f, 1.f};
+		glm::vec3 rotation; // spinnnn
 
 
 		// matrix translates to Ry * Rz * Rx * scale transformation, using tait-bryan angles with the order
@@ -33,7 +32,7 @@ namespace oeg
 		static OegGameObject createGameObject()
 		{
 			static idType currentID = 0;
-			return OegGameObject{ currentID++ };
+			return OegGameObject{currentID++};
 		}
 
 		OegGameObject(const OegGameObject&) = delete;
@@ -41,15 +40,16 @@ namespace oeg
 		OegGameObject(OegGameObject&&) = default;
 		OegGameObject& operator=(OegGameObject&&) = default;
 
-		idType getID() { return id;  }
+		idType getID() { return id; }
 
 		std::shared_ptr<OegModel> model{};
 		glm::vec3 color{};
 		TransformComponent transform{};
 
-
 	private:
-		OegGameObject(idType objectID) : id{ objectID } {};
+		OegGameObject(idType objectID) : id{objectID}
+		{
+		};
 
 		idType id;
 	};

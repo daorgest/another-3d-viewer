@@ -1,36 +1,32 @@
-cmake_minimum_required(VERSION 3.10)
-project(VulkanEngine)
+cmake_minimum_required(VERSION 3.20)
+project(VulkanEngine LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Set the build type (Debug or Release)
+
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Debug")
 endif()
 
-# Define the target executable
 add_executable(VulkanEngine
-        src/engine/oeg_utils.h)
+        src/game/main.cpp)
 
-# Source files for the target
-file(GLOB_RECURSE SRC_FILES
-        "src/*.cpp"
-        "src/*.h"
+# Define the source files using GLOB
+file(GLOB SRC_FILES
+    "src/game/*.cpp"
+    "src/engine/*.cpp"
+)
+
+# Define the header files using GLOB
+file(GLOB HEADER_FILES
+    "src/game/*.h"
+    "src/game/*.hpp"
+    "src/engine/*.h"
+    "src/engine/*.hpp"
 )
 
 # Add the source files to the target
-target_sources(VulkanEngine PRIVATE ${SRC_FILES})
-
-# Include directories for the target
-target_include_directories(VulkanEngine PRIVATE
-        "${CMAKE_SOURCE_DIR}/libs/fmt/include"
-        "${CMAKE_SOURCE_DIR}/libs/tinyobjloader"
-        "${CMAKE_SOURCE_DIR}/libs/glfw/include"
-        "${CMAKE_SOURCE_DIR}/libs/glm"
-#        "${CMAKE_SOURCE_DIR}/libs/VulkanMemoryAllocator/include"
-        "C:/VulkanSDK/1.3.250.0/Include"
-)
+target_sources(VulkanEngine PRIVATE ${SRC_FILES} ${HEADER_FILES})
 
 # Preprocessor definitions
 target_compile_definitions(VulkanEngine PRIVATE
@@ -38,55 +34,74 @@ target_compile_definitions(VulkanEngine PRIVATE
         "$<$<CONFIG:Release>:WIN32;NDEBUG;_CONSOLE>"
 )
 
-# Link libraries
+
+# Include directories for header files
+target_sources(${PROJECT_NAME} PRIVATE ${SRC_FILES})
+
+# Set the path to the 'libs' folder
+set(LIBS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/libs)
+
+# Vulkan
+find_package(Vulkan REQUIRED)
+target_include_directories(${PROJECT_NAME} PRIVATE ${Vulkan_INCLUDE_DIRS})
+target_link_libraries(${PROJECT_NAME} PRIVATE ${Vulkan_LIBRARIES})
+
+# GLFW
 if(WIN32)
-    target_link_directories(VulkanEngine PRIVATE
-            "${CMAKE_SOURCE_DIR}/libs/glfw/lib"
-            "C:/VulkanSDK/1.3.250.0/Lib"
-    )
+    target_link_libraries(${PROJECT_NAME} PRIVATE glfw3)
+else()
+    find_package(glfw3 REQUIRED)
+    target_link_libraries(${PROJECT_NAME} PRIVATE glfw)
+endif()
 
-    target_link_libraries(VulkanEngine PRIVATE
-            vulkan-1
-            glfw3
-    )
-elseif (UNIX)
-    message(STATUS "CREATING BUILD FOR UNIX")
-    target_include_directories(${PROJECT_NAME} PUBLIC
-            ${PROJECT_SOURCE_DIR}/src
-            ${TINYOBJ_PATH}
-    )
-    target_link_libraries(${PROJECT_NAME} glfw ${Vulkan_LIBRARIES})
-endif ()
-# Set the output directory for the executable
-set(EXECUTABLE_OUTPUT_PATH "${CMAKE_SOURCE_DIR}/bin")
+# FMT
+target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/libs/fmt/include)
 
+# TinyObjLoader
+target_include_directories(${PROJECT_NAME} PRIVATE ${LIBS_DIR}/tinyobjloader)
+
+# GLFW/include
+target_link_directories(${PROJECT_NAME} PRIVATE ${LIBS_DIR}/glfw/lib)
+target_include_directories(${PROJECT_NAME} PRIVATE ${LIBS_DIR}/glfw/include)
+
+# GLM include
+target_include_directories(${PROJECT_NAME} PRIVATE ${LIBS_DIR}/glm)
+
+# Vulkan include
+target_include_directories(${PROJECT_NAME} PRIVATE ${LIBS_DIR}/vulkan/include)
+
+# Find GLSL Validator
 find_program(GLSL_VALIDATOR glslangValidator HINTS
-        ${Vulkan_GLSLANG_VALIDATOR_EXECUTABLE}
-        /usr/bin
-        /usr/local/bin
-        ${VULKAN_SDK_PATH}/Bin
-        ${VULKAN_SDK_PATH}/Bin32
-        $ENV{VULKAN_SDK}/Bin/
-        $ENV{VULKAN_SDK}/Bin32/
+    ${Vulkan_GLSLANG_VALIDATOR_EXECUTABLE}
+    /usr/bin
+    /usr/local/bin
+    ${VULKAN_SDK_PATH}/Bin
+    ${VULKAN_SDK_PATH}/Bin32
+    $ENV{VULKAN_SDK}/Bin/
+    $ENV{VULKAN_SDK}/Bin32/
 )
 
-# get all .vert and .frag files in shaders directory
+# Get all .vert and .frag files in the shaders directory
 file(GLOB_RECURSE GLSL_SOURCE_FILES
-        "${PROJECT_SOURCE_DIR}/src/game/shaders/*.frag"
-        "${PROJECT_SOURCE_DIR}/src/game/shaders/*.vert"
+    "${PROJECT_SOURCE_DIR}/src/game/shaders/*.frag"
+    "${PROJECT_SOURCE_DIR}/src/game/shaders/*.vert"
 )
 
 foreach(GLSL ${GLSL_SOURCE_FILES})
     get_filename_component(FILE_NAME ${GLSL} NAME)
-    set(SPIRV "${PROJECT_SOURCE_DIR}/src/game/shaders/${FILE_NAME}.spv")
+    set(SPIRV "${PROJECT_BINARY_DIR}/shaders/${FILE_NAME}.spv")
     add_custom_command(
-            OUTPUT ${SPIRV}
-            COMMAND ${GLSL_VALIDATOR} -V ${GLSL} -o ${SPIRV}
-            DEPENDS ${GLSL})
+        OUTPUT ${SPIRV}
+        COMMAND ${GLSL_VALIDATOR} -V ${GLSL} -o ${SPIRV}
+        DEPENDS ${GLSL})
     list(APPEND SPIRV_BINARY_FILES ${SPIRV})
 endforeach(GLSL)
 
+# Create a custom target for shaders
 add_custom_target(
-        Shaders
-        DEPENDS ${SPIRV_BINARY_FILES}
+    Shaders
+    DEPENDS ${SPIRV_BINARY_FILES}
 )
+
+# Add the Shaders target as a dependency for the main executable
+add_dependencies(${PROJECT_NAME} Shaders)
