@@ -3,7 +3,6 @@ project(VulkanEngine LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 
-
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Debug")
 endif()
@@ -34,7 +33,6 @@ target_compile_definitions(VulkanEngine PRIVATE
         "$<$<CONFIG:Release>:WIN32;NDEBUG;_CONSOLE>"
 )
 
-
 # Include directories for header files
 target_sources(${PROJECT_NAME} PRIVATE ${SRC_FILES})
 
@@ -55,7 +53,7 @@ else()
 endif()
 
 # FMT
-target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/libs/fmt/include)
+target_include_directories(${PROJECT_NAME} PRIVATE ${LIBS_DIR}/fmt/include)
 
 # TinyObjLoader
 target_include_directories(${PROJECT_NAME} PRIVATE ${LIBS_DIR}/tinyobjloader)
