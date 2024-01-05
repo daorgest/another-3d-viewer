@@ -50,7 +50,6 @@ namespace oeg
 		}
 	}
 
-	// class member functions
 	OegDevice::OegDevice(OegWindow& window) : window{window}
 	{
 		createInstance();
@@ -59,6 +58,13 @@ namespace oeg
 		pickPhysicalDevice();
 		createLogicalDevice();
 		createCommandPool();
+
+		// Initialize VMA Allocator
+		VmaAllocatorCreateInfo allocatorInfo = {};
+		allocatorInfo.physicalDevice = physicalDevice;
+		allocatorInfo.device = device_;
+		allocatorInfo.instance = instance;
+		vmaCreateAllocator(&allocatorInfo, &allocator_);
 	}
 
 	OegDevice::~OegDevice()
@@ -73,7 +79,11 @@ namespace oeg
 
 		vkDestroySurfaceKHR(instance, surface_, nullptr);
 		vkDestroyInstance(instance, nullptr);
+
+		// Destroy VMA Allocator
+		vmaDestroyAllocator(allocator_);
 	}
+
 
 	void OegDevice::createInstance()
 	{
@@ -463,40 +473,6 @@ namespace oeg
 		throw std::runtime_error("failed to find suitable memory type!");
 	}
 
-	void OegDevice::createBuffer(
-		VkDeviceSize size,
-		VkBufferUsageFlags usage,
-		VkMemoryPropertyFlags properties,
-		VkBuffer& buffer,
-		VkDeviceMemory& bufferMemory)
-	{
-		VkBufferCreateInfo bufferInfo{};
-		bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-		bufferInfo.size = size;
-		bufferInfo.usage = usage;
-		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-
-		if (vkCreateBuffer(device_, &bufferInfo, nullptr, &buffer) != VK_SUCCESS)
-		{
-			throw std::runtime_error("failed to create vertex buffer!");
-		}
-
-		VkMemoryRequirements memRequirements;
-		vkGetBufferMemoryRequirements(device_, buffer, &memRequirements);
-
-		VkMemoryAllocateInfo allocInfo{};
-		allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-		allocInfo.allocationSize = memRequirements.size;
-		allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, properties);
-
-		if (vkAllocateMemory(device_, &allocInfo, nullptr, &bufferMemory) != VK_SUCCESS)
-		{
-			throw std::runtime_error("failed to allocate vertex buffer memory!");
-		}
-
-		vkBindBufferMemory(device_, buffer, bufferMemory, 0);
-	}
-
 	VkCommandBuffer OegDevice::beginSingleTimeCommands()
 	{
 		VkCommandBufferAllocateInfo allocInfo{};
@@ -576,29 +552,17 @@ namespace oeg
 		const VkImageCreateInfo& imageInfo,
 		VkMemoryPropertyFlags properties,
 		VkImage& image,
-		VkDeviceMemory& imageMemory)
+		VmaAllocation& allocation) const
+	// Updated to use VMA allocation
 	{
-		if (vkCreateImage(device_, &imageInfo, nullptr, &image) != VK_SUCCESS)
+		if (vmaCreateImage(allocator_, &imageInfo, nullptr, &image, &allocation, nullptr) != VK_SUCCESS)
 		{
 			throw std::runtime_error("failed to create image!");
 		}
+	}
 
-		VkMemoryRequirements memRequirements;
-		vkGetImageMemoryRequirements(device_, image, &memRequirements);
-
-		VkMemoryAllocateInfo allocInfo{};
-		allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-		allocInfo.allocationSize = memRequirements.size;
-		allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, properties);
-
-		if (vkAllocateMemory(device_, &allocInfo, nullptr, &imageMemory) != VK_SUCCESS)
-		{
-			throw std::runtime_error("failed to allocate image memory!");
-		}
-
-		if (vkBindImageMemory(device_, image, imageMemory, 0) != VK_SUCCESS)
-		{
-			throw std::runtime_error("failed to bind image memory!");
-		}
+	VmaAllocator OegDevice::getAllocator() const
+	{
+		return allocator_;
 	}
 } // namespace lve

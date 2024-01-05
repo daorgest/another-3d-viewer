@@ -80,8 +80,8 @@ namespace oeg
 		shaderStages[1].pName = "main";
 		shaderStages[1].pSpecializationInfo = nullptr;
 
-		auto bindingDescriptions = OegModel::Vertex::getBindingDescriptions();
-		auto attributeDescriptions = OegModel::Vertex::getAttributeDescriptions();
+		const auto bindingDescriptions = Vertex::getBindingDescriptions();
+		const auto attributeDescriptions = Vertex::getAttributeDescriptions();
 		VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
 		vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 		vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());

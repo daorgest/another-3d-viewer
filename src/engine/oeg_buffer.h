@@ -13,7 +13,8 @@ namespace oeg
 			uint32_t instanceCount,
 			VkBufferUsageFlags usageFlags,
 			VkMemoryPropertyFlags memoryPropertyFlags,
-			VkDeviceSize minOffsetAlignment = 1);
+			VmaAllocator allocator,
+			VkDeviceSize minOffsetAlignment);
 		~OegBuffer();
 
 		OegBuffer(const OegBuffer&) = delete;
@@ -23,7 +24,7 @@ namespace oeg
 		void unmap();
 
 		void writeToBuffer(void* data, VkDeviceSize size = VK_WHOLE_SIZE, VkDeviceSize offset = 0);
-		VkResult flush(VkDeviceSize size = VK_WHOLE_SIZE, VkDeviceSize offset = 0);
+		VkResult flush(VkDeviceSize size = VK_WHOLE_SIZE, VkDeviceSize offset = 0) const;
 		VkDescriptorBufferInfo descriptorInfo(VkDeviceSize size = VK_WHOLE_SIZE, VkDeviceSize offset = 0);
 		VkResult invalidate(VkDeviceSize size = VK_WHOLE_SIZE, VkDeviceSize offset = 0);
 
@@ -44,10 +45,12 @@ namespace oeg
 	private:
 		static VkDeviceSize getAlignment(VkDeviceSize instanceSize, VkDeviceSize minOffsetAlignment);
 
+
 		OegDevice& oegDevice;
 		void* mapped = nullptr;
 		VkBuffer buffer = VK_NULL_HANDLE;
-		VkDeviceMemory memory = VK_NULL_HANDLE;
+		VmaAllocator allocator{};
+		VmaAllocation allocation{};
 
 		VkDeviceSize bufferSize;
 		uint32_t instanceCount;

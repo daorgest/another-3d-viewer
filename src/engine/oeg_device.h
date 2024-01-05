@@ -2,10 +2,12 @@
 
 #include "oeg_window.h"
 #include <vulkan/vulkan.h>
+#include <vk_mem_alloc.h> // Include VMA header
 
 // std lib headers
 #include <string>
 #include <vector>
+
 
 namespace oeg
 {
@@ -29,7 +31,7 @@ namespace oeg
 	{
 	public:
 #ifdef NDEBUG
-  const bool enableValidationLayers = false;
+        const bool enableValidationLayers = false;
 #else
 		const bool enableValidationLayers = true;
 #endif
@@ -55,13 +57,7 @@ namespace oeg
 		VkFormat findSupportedFormat(
 			const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
 
-		// Buffer Helper Functions
-		void createBuffer(
-			VkDeviceSize size,
-			VkBufferUsageFlags usage,
-			VkMemoryPropertyFlags properties,
-			VkBuffer& buffer,
-			VkDeviceMemory& bufferMemory);
+
 		VkCommandBuffer beginSingleTimeCommands();
 		void endSingleTimeCommands(VkCommandBuffer commandBuffer);
 		void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
@@ -72,9 +68,14 @@ namespace oeg
 			const VkImageCreateInfo& imageInfo,
 			VkMemoryPropertyFlags properties,
 			VkImage& image,
-			VkDeviceMemory& imageMemory);
+			VmaAllocation& allocation) const; // Use VMA allocation type
 
 		VkPhysicalDeviceProperties properties;
+
+		VkInstance getInstance() { return instance; }
+		VkPhysicalDevice getPhysicalDevice() { return physicalDevice; }
+
+		VmaAllocator getAllocator() const;
 
 	private:
 		void createInstance();
@@ -84,7 +85,8 @@ namespace oeg
 		void createLogicalDevice();
 		void createCommandPool();
 
-		// helper functions
+
+		// Helper functions (unchanged)
 		bool isDeviceSuitable(VkPhysicalDevice device);
 		std::vector<const char*> getRequiredExtensions();
 		bool checkValidationLayerSupport();
@@ -104,6 +106,8 @@ namespace oeg
 		VkSurfaceKHR surface_;
 		VkQueue graphicsQueue_;
 		VkQueue presentQueue_;
+
+		VmaAllocator allocator_;
 
 		const std::vector<const char*> validationLayers = {"VK_LAYER_KHRONOS_validation"};
 		const std::vector<const char*> deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};

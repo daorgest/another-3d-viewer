@@ -12,6 +12,7 @@ namespace oeg
 	public:
 		void setOrthographicProjection(
 			float left, float right, float top, float bottom, float near, float far);
+
 		/**
 		 * \brief FOV (vertical fov)
 		 */

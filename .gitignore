@@ -103,13 +103,13 @@ Testing/
 build/
 cmake-build-*/
 
-# Others
-ClientBin/
-~$*
-*~
-*.dbmdl
-*.dbproj.schemaview
-*.jfm
-*.pfx
-*.publishsettings
-orleans.codegen.cs
+# Vim
+*.swp
+.swp
+
+# IntelliJ and CLion
+.idea/
+*.iml
+*.iws
+*.ipr
+.cmake/

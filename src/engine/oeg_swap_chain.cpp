@@ -8,6 +8,7 @@
 #include <limits>
 #include <set>
 #include <stdexcept>
+#include <utility>
 
 namespace oeg
 {
@@ -18,12 +19,11 @@ namespace oeg
 	}
 
 	OegSwapChain::OegSwapChain(OegDevice& deviceRef, VkExtent2D extent, std::shared_ptr<OegSwapChain> previous)
-		: device{deviceRef}, windowExtent{extent}, oldSwapChain{previous}
+		: device{deviceRef}, windowExtent{extent}, oldSwapChain{std::move(previous)}
 	{
 		init();
 
-		// clean old swap chain cuz no longer needed
-		oldSwapChain = nullptr;
+		// The oldSwapChain member is already initialized using std::move, so no need to set it to nullptr here.
 	}
 
 	void OegSwapChain::init()
@@ -52,9 +52,7 @@ namespace oeg
 
 		for (int i = 0; i < depthImages.size(); i++)
 		{
-			vkDestroyImageView(device.device(), depthImageViews[i], nullptr);
-			vkDestroyImage(device.device(), depthImages[i], nullptr);
-			vkFreeMemory(device.device(), depthImageMemorys[i], nullptr);
+			vmaDestroyImage(device.getAllocator(), depthImages[i], depthImageAllocations[i]);
 		}
 
 		for (auto framebuffer : swapChainFramebuffers)
@@ -330,16 +328,16 @@ namespace oeg
 	void OegSwapChain::createDepthResources()
 	{
 		VkFormat depthFormat = findDepthFormat();
-		swapChainDepthFormat = depthFormat;
 		VkExtent2D swapChainExtent = getSwapChainExtent();
 
 		depthImages.resize(imageCount());
-		depthImageMemorys.resize(imageCount());
+		depthImageAllocations.resize(imageCount());
 		depthImageViews.resize(imageCount());
 
-		for (int i = 0; i < depthImages.size(); i++)
+		for (size_t i = 0; i < depthImages.size(); i++)
 		{
-			VkImageCreateInfo imageInfo{};
+			// Creating the depth image
+			VkImageCreateInfo imageInfo = {};
 			imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
 			imageInfo.imageType = VK_IMAGE_TYPE_2D;
 			imageInfo.extent.width = swapChainExtent.width;
@@ -353,15 +351,18 @@ namespace oeg
 			imageInfo.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 			imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
 			imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-			imageInfo.flags = 0;
 
-			device.createImageWithInfo(
-				imageInfo,
-				VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-				depthImages[i],
-				depthImageMemorys[i]);
+			VmaAllocationCreateInfo allocCreateInfo = {};
+			allocCreateInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
 
-			VkImageViewCreateInfo viewInfo{};
+			if (vmaCreateImage(device.getAllocator(), &imageInfo, &allocCreateInfo, &depthImages[i],
+			                   &depthImageAllocations[i], nullptr) != VK_SUCCESS)
+			{
+				throw std::runtime_error("Failed to create depth image!");
+			}
+
+			// Creating the image view
+			VkImageViewCreateInfo viewInfo = {};
 			viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 			viewInfo.image = depthImages[i];
 			viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
@@ -374,7 +375,7 @@ namespace oeg
 
 			if (vkCreateImageView(device.device(), &viewInfo, nullptr, &depthImageViews[i]) != VK_SUCCESS)
 			{
-				throw std::runtime_error("failed to create texture image view!");
+				throw std::runtime_error("Failed to create texture image view!");
 			}
 		}
 	}

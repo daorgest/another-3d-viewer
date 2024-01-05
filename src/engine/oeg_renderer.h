@@ -16,9 +16,11 @@ namespace oeg
 	{
 	public:
 		OegRenderer(OegWindow& window, OegDevice& device);
+
 		~OegRenderer();
 
 		OegRenderer(const OegRenderer&) = delete;
+
 		OegRenderer& operator=(const OegRenderer&) = delete;
 
 		VkRenderPass getSwapChainRenderPass() const { return oegSwapChain->getRenderPass(); }
@@ -38,13 +40,18 @@ namespace oeg
 		}
 
 		VkCommandBuffer beginFrame();
+
 		void endFrame();
+
 		void beginSwapChainRenderPass(VkCommandBuffer commandBuffer);
+
 		void endSwapChainRenderPass(VkCommandBuffer commandBuffer);
 
 	private:
 		void createCommandBuffer();
+
 		void freeCommandBuffers();
+
 		void recreateSwapChain();
 
 		OegWindow& oegWindow;

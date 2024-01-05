@@ -15,9 +15,9 @@
 namespace std
 {
 	template <>
-	struct hash<oeg::OegModel::Vertex>
+	struct hash<oeg::Vertex>
 	{
-		size_t operator()(const oeg::OegModel::Vertex& vertex) const
+		size_t operator()(const oeg::Vertex& vertex) const noexcept
 		{
 			size_t seed = 0;
 			oeg::hashCombine(seed, vertex.position, vertex.color, vertex.normal, vertex.uv);
@@ -49,31 +49,37 @@ namespace oeg
 	{
 		vertexCount = static_cast<uint32_t>(vertices.size());
 		assert(vertexCount >= 3 && "Vertex count must be at least 3...");
-		VkDeviceSize bufferSize = sizeof(vertices[0]) * vertexCount;
-		uint32_t vertexSize = sizeof(vertices[0]); // PLEASE PUT AN INDEX ON THIS OR YOUR COMPUTER WILL HANG
 
-		OegBuffer stagingBuffer
-		{
+		const VkDeviceSize bufferSize = sizeof(vertices[0]) * vertexCount;
+		uint32_t vertexSize = sizeof(vertices[0]);
+
+		// Create a staging buffer first
+		OegBuffer stagingBuffer{
 			oegDevice,
 			vertexSize,
 			vertexCount,
 			VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+			oegDevice.getAllocator(), // No need to specify minOffsetAlignment here
+			1
 		};
 
-		stagingBuffer.map();
+		stagingBuffer.map(); // Map the staging buffer for writing
 		stagingBuffer.writeToBuffer((void*)vertices.data());
 
+		// Now create the final vertex buffer
 		vertexBuffer = std::make_unique<OegBuffer>(
 			oegDevice,
 			vertexSize,
 			vertexCount,
-			VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, // used to hold vertex input data
-			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT // host = CPU
+			VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+			oegDevice.getAllocator(), // No need to specify minOffsetAlignment here
+			1
 		);
 
 		oegDevice.copyBuffer(stagingBuffer.getBuffer(), vertexBuffer->getBuffer(), bufferSize);
-		// it will destroy anyway
+		// The staging buffer will be destroyed when it goes out of scope
 	}
 
 	void OegModel::createIndexBuffer(const std::vector<uint32_t>& indices)
@@ -95,7 +101,9 @@ namespace oeg
 			indexSize,
 			indexCount,
 			VK_BUFFER_USAGE_TRANSFER_SRC_BIT, // used to source location for memory buffer
-			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT // host = CPU
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, // host = CPU
+			oegDevice.getAllocator(), // No need to specify minOffsetAlignment here
+			1
 		};
 
 		stagingBuffer.map();
@@ -106,7 +114,9 @@ namespace oeg
 			indexSize,
 			indexCount,
 			VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, // used to hold index input data
-			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT // host = CPU
+			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, // host = CPU
+			oegDevice.getAllocator(), // No need to specify minOffsetAlignment here
+			1
 		);
 
 
@@ -137,7 +147,7 @@ namespace oeg
 		}
 	}
 
-	std::vector<VkVertexInputBindingDescription> OegModel::Vertex::getBindingDescriptions()
+	std::vector<VkVertexInputBindingDescription> Vertex::getBindingDescriptions()
 	{
 		std::vector<VkVertexInputBindingDescription> bindingDescriptions(1);
 		bindingDescriptions[0].binding = 0;
@@ -146,7 +156,7 @@ namespace oeg
 		return bindingDescriptions;
 	}
 
-	std::vector<VkVertexInputAttributeDescription> OegModel::Vertex::getAttributeDescriptions()
+	std::vector<VkVertexInputAttributeDescription> Vertex::getAttributeDescriptions()
 	{
 		std::vector<VkVertexInputAttributeDescription> attributeDescriptions{};
 
@@ -165,7 +175,7 @@ namespace oeg
 		return attributeDescriptions;
 	}
 
-	bool OegModel::Vertex::operator==(const Vertex& other) const
+	bool Vertex::operator==(const Vertex& other) const
 	{
 		return position == other.position && color == other.color && normal == other.normal &&
 			uv == other.uv;
@@ -180,68 +190,75 @@ namespace oeg
 	*/
 	void OegModel::Builder::loadModel(const std::string& filepath)
 	{
-		// Initialize variables for storing model data
 		tinyobj::attrib_t attrib;
 		std::vector<tinyobj::shape_t> shapes;
 		std::vector<tinyobj::material_t> materials;
 		std::string warn, err;
 
-		// Attempt to load the model using the TinyObjLoader library
 		if (!LoadObj(&attrib, &shapes, &materials, &warn, &err, filepath.c_str()))
 		{
-			// Throw a runtime error if there was an error loading the model
 			throw std::runtime_error(warn + err);
 		}
 
-		fmt::print("IT LOADED\n");
-		vertices.clear();
-		indices.clear();
-		std::unordered_map<Vertex, uint32_t> uniqueVertices{};
+		std::unordered_map<Vertex, uint32_t> uniqueVertexMap;
 		for (const auto& shape : shapes)
 		{
 			for (const auto& index : shape.mesh.indices)
 			{
-				Vertex vertex{};
-
-				if (index.vertex_index >= 0)
+				Vertex vertex = createVertexFromIndex(attrib, index);
+				if (!uniqueVertexMap.contains(vertex))
 				{
-					vertex.position = {
-						attrib.vertices[3 * index.vertex_index + 0],
-						attrib.vertices[3 * index.vertex_index + 1],
-						attrib.vertices[3 * index.vertex_index + 2]
-					};
-
-					vertex.color = {
-						attrib.colors[3 * index.vertex_index + 0],
-						attrib.colors[3 * index.vertex_index + 1],
-						attrib.colors[3 * index.vertex_index + 2]
-					};
-				}
-
-				if (index.normal_index >= 0)
-				{
-					vertex.normal = {
-						attrib.normals[3 * index.normal_index + 0],
-						attrib.normals[3 * index.normal_index + 1],
-						attrib.normals[3 * index.normal_index + 2]
-					};
-				}
-
-				if (index.texcoord_index >= 0)
-				{
-					vertex.uv = {
-						attrib.texcoords[2 * index.texcoord_index + 0],
-						attrib.texcoords[2 * index.texcoord_index + 1]
-					};
-				}
-
-				if (!uniqueVertices.contains(vertex))
-				{
-					uniqueVertices[vertex] = static_cast<uint32_t>(vertices.size());
+					uniqueVertexMap[vertex] = static_cast<uint32_t>(vertices.size());
 					vertices.push_back(vertex);
 				}
-				indices.push_back(uniqueVertices[vertex]);
+				indices.push_back(uniqueVertexMap[vertex]);
 			}
 		}
 	}
-}
+
+	Vertex OegModel::Builder::createVertexFromIndex(const tinyobj::attrib_t& attrib, const tinyobj::index_t& index)
+	{
+		Vertex vertex{};
+
+		// Extract position
+		if (index.vertex_index >= 0)
+		{
+			vertex.position = {
+				attrib.vertices[3 * index.vertex_index + 0],
+				attrib.vertices[3 * index.vertex_index + 1],
+				attrib.vertices[3 * index.vertex_index + 2]
+			};
+		}
+
+		// Extract color (if available)
+		if (!attrib.colors.empty())
+		{
+			vertex.color = {
+				attrib.colors[3 * index.vertex_index + 0],
+				attrib.colors[3 * index.vertex_index + 1],
+				attrib.colors[3 * index.vertex_index + 2]
+			};
+		}
+
+		// Extract normal
+		if (index.normal_index >= 0)
+		{
+			vertex.normal = {
+				attrib.normals[3 * index.normal_index + 0],
+				attrib.normals[3 * index.normal_index + 1],
+				attrib.normals[3 * index.normal_index + 2]
+			};
+		}
+
+		// Extract texture coordinates
+		if (index.texcoord_index >= 0)
+		{
+			vertex.uv = {
+				attrib.texcoords[2 * index.texcoord_index + 0],
+				attrib.texcoords[2 * index.texcoord_index + 1]
+			};
+		}
+
+		return vertex;
+	}
+};

@@ -10,6 +10,8 @@
 // std
 #include <cassert>
 #include <cstring>
+#include <exception>
+#include <stdexcept>
 
 namespace oeg
 {
@@ -37,8 +39,10 @@ namespace oeg
 		uint32_t instanceCount,
 		VkBufferUsageFlags usageFlags,
 		VkMemoryPropertyFlags memoryPropertyFlags,
-		VkDeviceSize minOffsetAlignment)
+		VmaAllocator allocator,
+		VkDeviceSize minOffsetAlignment = 1) // Default value added
 		: oegDevice{device},
+		  allocator{allocator},
 		  instanceCount{instanceCount},
 		  instanceSize{instanceSize},
 		  usageFlags{usageFlags},
@@ -46,14 +50,29 @@ namespace oeg
 	{
 		alignmentSize = getAlignment(instanceSize, minOffsetAlignment);
 		bufferSize = alignmentSize * instanceCount;
-		device.createBuffer(bufferSize, usageFlags, memoryPropertyFlags, buffer, memory);
+
+		VkBufferCreateInfo bufferInfo = {};
+		bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+		bufferInfo.size = bufferSize;
+		bufferInfo.usage = usageFlags;
+		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+		VmaAllocationCreateInfo allocInfo = {};
+		allocInfo.usage = VMA_MEMORY_USAGE_CPU_TO_GPU; // Adjust based on your needs
+
+		if (vmaCreateBuffer(allocator, &bufferInfo, &allocInfo, &buffer, &allocation, nullptr) != VK_SUCCESS)
+		{
+			throw std::runtime_error("Failed to create buffer with VMA");
+		}
 	}
 
 	OegBuffer::~OegBuffer()
 	{
-		unmap();
-		vkDestroyBuffer(oegDevice.device(), buffer, nullptr);
-		vkFreeMemory(oegDevice.device(), memory, nullptr);
+		if (mapped)
+		{
+			unmap(); // Ensure buffer is unmapped before destruction
+		}
+		vmaDestroyBuffer(allocator, buffer, allocation);
 	}
 
 	/**
@@ -67,8 +86,8 @@ namespace oeg
 	 */
 	VkResult OegBuffer::map(VkDeviceSize size, VkDeviceSize offset)
 	{
-		assert(buffer && memory && "Called map on buffer before create");
-		return vkMapMemory(oegDevice.device(), memory, offset, size, 0, &mapped);
+		assert(buffer && "Called map on buffer before create");
+		return vmaMapMemory(allocator, allocation, &mapped);
 	}
 
 	/**
@@ -80,7 +99,7 @@ namespace oeg
 	{
 		if (mapped)
 		{
-			vkUnmapMemory(oegDevice.device(), memory);
+			vmaUnmapMemory(allocator, allocation);
 			mapped = nullptr;
 		}
 	}
@@ -100,14 +119,12 @@ namespace oeg
 
 		if (size == VK_WHOLE_SIZE)
 		{
-			memcpy(mapped, data, bufferSize);
+			size = bufferSize;
 		}
-		else
-		{
-			auto memOffset = static_cast<char*>(mapped);
-			memOffset += offset;
-			memcpy(memOffset, data, size);
-		}
+
+		auto memOffset = static_cast<char*>(mapped);
+		memOffset += offset;
+		memcpy(memOffset, data, size);
 	}
 
 	/**
@@ -121,11 +138,19 @@ namespace oeg
 	 *
 	 * @return VkResult of the flush call
 	 */
-	VkResult OegBuffer::flush(VkDeviceSize size, VkDeviceSize offset)
+	VkResult OegBuffer::flush(VkDeviceSize size, VkDeviceSize offset) const
 	{
+		if (size == VK_WHOLE_SIZE)
+		{
+			size = bufferSize;
+		}
+
+		VmaAllocationInfo allocInfo;
+		vmaGetAllocationInfo(allocator, allocation, &allocInfo);
+
 		VkMappedMemoryRange mappedRange = {};
 		mappedRange.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
-		mappedRange.memory = memory;
+		mappedRange.memory = allocInfo.deviceMemory;
 		mappedRange.offset = offset;
 		mappedRange.size = size;
 		return vkFlushMappedMemoryRanges(oegDevice.device(), 1, &mappedRange);
@@ -146,7 +171,7 @@ namespace oeg
 	{
 		VkMappedMemoryRange mappedRange = {};
 		mappedRange.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
-		mappedRange.memory = memory;
+		mappedRange.memory = reinterpret_cast<VkDeviceMemory>(allocation);
 		mappedRange.offset = offset;
 		mappedRange.size = size;
 		return vkInvalidateMappedMemoryRanges(oegDevice.device(), 1, &mappedRange);
@@ -178,7 +203,11 @@ namespace oeg
 	 */
 	void OegBuffer::writeToIndex(void* data, int index)
 	{
-		writeToBuffer(data, instanceSize, index * alignmentSize);
+		if (index < 0 || index >= static_cast<int>(instanceCount))
+		{
+			throw std::out_of_range("Index out of range");
+		}
+		writeToBuffer(data, instanceSize, static_cast<VkDeviceSize>(index) * alignmentSize);
 	}
 
 	/**

@@ -2,10 +2,10 @@
 
 #include "oeg_device.h"
 
-// vulkan headers
+// Vulkan Memory Allocator headers
 #include <vulkan/vulkan.h>
 
-// std lib headers
+// Standard library headers
 #include <memory>
 #include <string>
 #include <vector>
@@ -73,7 +73,7 @@ namespace oeg
 		VkRenderPass renderPass;
 
 		std::vector<VkImage> depthImages;
-		std::vector<VkDeviceMemory> depthImageMemorys;
+		std::vector<VmaAllocation> depthImageAllocations; // VMA allocated memory
 		std::vector<VkImageView> depthImageViews;
 		std::vector<VkImage> swapChainImages;
 		std::vector<VkImageView> swapChainImageViews;

@@ -4,7 +4,6 @@
 #include "../engine/oeg_window.h"
 
 
-
 namespace oeg
 {
 	class KeyboardMovementController
@@ -29,7 +28,5 @@ namespace oeg
 		KeyMappings keys{};
 		float moveSpeed{3.f};
 		float lookSpeed{1.5f};
-
-	private:
 	};
 }
